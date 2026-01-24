@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEET Syllabus Tracker | SvalTech</title>
+
+    <!-- --- SEO & Social Meta Tags --- -->
+    <meta name="description" content="A modern, interactive dashboard to track your complete NEET 2026 syllabus progress, revisions, and 1.PYQs.">
+    <meta name="keywords" content="NEET, NEET 2026, NEET 2027, NEET 2028, NEET Syllabus, NEET Tracker, Syllabus Tracke1r, IIT NEET, SvalTech, NEET App">
+    <link rel="canonical" href="https://sval.tech/syllabustracker/">
+    
+    <meta property="og:title" content="NEET Syllabus Tracker | SvalTech">
+    <meta property="og:description" content="Track your NEET 2026 syllabus progress, revisions, and PYQs.">
+    <meta property="og:type" content="website">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        bg: '#0F0F12',
+                        card: '#1A1A1E',
+                        'card-hover': '#212125',
+                        border: '#2a2a30',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0F0F12;
+            --card-bg: #1A1A1E;
+            --card-bg-light: #212125;
+            --border-color: #2a2a30;
+            --primary-color: #6366f1;
+            
+            --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+            --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif !important;
+            background-color: var(--bg-color);
+            color: #a3a3a3;
+            background-image: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 25%),
+                              radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 25%);
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .glassmorphism {
+            background: rgba(26, 26, 30, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+        }
+
+        .arrow { transition: transform 0.3s var(--ease-in-out-cubic); }
+        .collapsed .arrow { transform: rotate(-90deg); }
+        .expanded .arrow { transform: rotate(0deg); }
+
+        .content-container {
+            max-height: 4000px;
+            overflow: hidden;
+            transition: max-height 0.4s var(--ease-out-cubic), opacity 0.3s ease;
+            opacity: 1;
+            visibility: visible;
+            will-change: max-height, opacity; 
+            contain: content; 
+        }
+        .collapsed .content-container {
+            max-height: 0;
+            opacity: 0;
+            visibility: hidden;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        
+        .progress-bar-segment { transition: width 0.6s var(--ease-in-out-cubic); }
+
+        .subject-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.5s var(--ease-out-cubic) backwards;
+            will-change: transform, opacity;
+            contain: layout style;
+        }
+        .subject-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px 0 rgba(99, 102, 241, 0.1);
+        }
+        .subject-card:nth-child(2n) { animation-delay: 0.1s; }
+        .subject-card:nth-child(3n) { animation-delay: 0.2s; }
+
+        .chapter-leaf {
+            transition: background-color 0.15s ease-out;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: 1px solid var(--border-color);
+            min-height: 48px; 
+        }
+        .chapter-leaf:last-child { border-bottom: 1px solid transparent; }
+        .chapter-leaf:hover { background-color: var(--card-bg-light); }
+        
+        .chapter-leaf.is-open {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        .highlight {
+            background-color: rgba(99, 102, 241, 0.15);
+            color: var(--primary-color);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .text-glow {
+            /* Reduced from 15px to 6px for a tight, subtle shine */
+            text-shadow: 0 0 4px currentColor;
+            opacity: 0.9; /* Slight transparency helps it look less "blown out" */
+        }
+
+        .text-glow-strong {
+            /* Reduced from double shadows to a single, tighter shadow */
+            text-shadow: 0 0 8px currentColor; 
+        }
+
+        /* Toggle Switch */
+        .mode-toggle {
+            position: relative;
+            background-color: var(--card-bg);
+            border-radius: 99px;
+            padding: 4px;
+            display: flex;
+            border: 1px solid var(--border-color);
+        }
+        .mode-toggle .toggle-option {
+            flex: 1;
+            padding: 6px 0;
+            text-align: center;
+            font-size: 0.75rem; /* Smaller font for class toggle */
+            font-weight: 500;
+            color: #737373;
+            position: relative;
+            z-index: 10;
+            cursor: pointer;
+            transition: color 0.3s var(--ease-in-out-cubic);
+        }
+        .mode-toggle .toggle-option.active { color: white; }
+        .mode-toggle .toggle-slider {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            height: calc(100% - 8px);
+            background-color: var(--primary-color);
+            border-radius: 99px;
+            transition: transform 0.3s var(--ease-in-out-cubic);
+            z-index: 5;
+        }
+        
+        /* View Mode Specifics (2 options) */
+        .view-mode-toggle .toggle-slider { width: calc(50% - 4px); }
+        .view-mode-toggle[data-mode="flat"] .toggle-slider { transform: translateX(calc(100% + 4px)); }
+        
+        /* Class Mode Specifics (3 options) */
+        .class-mode-toggle .toggle-slider { width: calc(33.333% - 2.6px); }
+        .class-mode-toggle[data-mode="11"] .toggle-slider { transform: translateX(0); }
+        .class-mode-toggle[data-mode="12"] .toggle-slider { transform: translateX(calc(100%)); }
+        .class-mode-toggle[data-mode="both"] .toggle-slider { transform: translateX(calc(200% + 0px)); }
+
+        /* Target Mode Specifics (2 options) */
+        .target-mode-toggle .toggle-slider { width: calc(50% - 4px); }
+        /* When data-mode is 'adv', slide it to the right */
+        .target-mode-toggle[data-mode="adv"] .toggle-slider { transform: translateX(calc(100% + 4px)); }
+        /* Action Panel */
+        .action-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s var(--ease-in-out-cubic), opacity 0.2s ease-out, transform 0.3s ease;
+            opacity: 0;
+            transform: translateY(-5px);
+            background-color: #141416;
+            border-top: 1px solid var(--border-color);
+            will-change: max-height, opacity;
+        }
+        .action-panel.open {
+            max-height: 500px;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Status Dot */
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; flex-shrink: 0; }
+
+        /* Badges */
+        .badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+        .badge-pyq { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-rev { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.2); }
+        .badge-11 { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.2); }
+        .badge-12 { background: rgba(244, 114, 182, 0.1); color: #f472b6; border: 1px solid rgba(244, 114, 182, 0.2); }
+
+        /* Zenith Banner Animation */
+        #zenith-banner {
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.4s var(--ease-out-cubic), transform 0.4s var(--ease-out-cubic);
+            max-height: 0;
+            overflow: hidden;
+        }
+        #zenith-banner.show {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 500px;
+        }
+        #zenith-banner.hide {
+            opacity: 0;
+            transform: translateY(-20px);
+            max-height: 0;
+            margin-bottom: 0 !important;
+        }
+        
+        /* FAB Animation */
+        .fab-enter { animation: fabIn 0.5s var(--ease-out-cubic) forwards; }
+        @keyframes fabIn { from { transform: scale(0) rotate(-45deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+        .hidden { display: none !important; }
+        .invisible { visibility: hidden; }
+        
+        /* Higher Z-Index for Modal to cover FAB */
+        #reset-modal { z-index: 100; }
+    </style>
+</head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TCK0S6VC58"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-TCK0S6VC58');
+</script>
+<body class="bg-bg-color text-neutral-400 antialiased font-sans">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-extrabold bg-clip-text bg-gradient-to-r from-indigo-400 to-indigo-500 mb-3 relative inline-block">
+                NEET Syllabus Tracker
+                <span class="absolute -inset-2 block bg-gradient-to-r from-indigo-500 to-indigo-600 opacity-20 blur-3xl -z-10"></span>
+            </h1>
+            <p class="text-sm text-neutral-500">Powered by sval.tech</p>
+        </header>
+
+    
+
+        <!-- Main Grid -->
+        <div class="flex flex-col xl:flex-row gap-8 items-start mb-20">
+            
+            <!-- Sidebar: Stats, Countdown, Tools -->
+            <div id="overall-stats-container" class="w-full xl:w-80 xl:sticky xl:top-8 space-y-6">
+                
+                
+
+                <!-- Stats -->
+                <div class="p-6 rounded-2xl shadow-2xl glassmorphism">
+                    <h2 class="text-xl font-bold text-white mb-5 border-b border-neutral-700 pb-3">Progress</h2>
+                    
+                    <div id="overall-progress-data" class="space-y-5">
+                        <!-- Stats Injected Here -->
+                    </div>
+
+                    <!-- Filters Section -->
+                    <div class="mt-6 border-t border-neutral-700 pt-5 space-y-4">
+                        
+                        <!-- Class Filter -->
+                        <div>
+                            <label class="block text-neutral-300 font-semibold mb-2 text-sm flex justify-between">
+                                <span>Class Filter</span>
+                                <span id="class-filter-label" class="text-xs text-indigo-400">All</span>
+                            </label>
+                            <div class="mode-toggle class-mode-toggle" data-mode="both">
+                                <div class="toggle-slider"></div>
+                                <div id="filter-11" data-filter="11" class="toggle-option" role="button" tabindex="0">11th</div>
+                                <div id="filter-12" data-filter="12" class="toggle-option" role="button" tabindex="0">12th</div>
+                                <div id="filter-both" data-filter="both" class="toggle-option active" role="button" tabindex="0">Both</div>
+                            </div>
+                        </div>
+                        
+                        <!-- View Mode -->
+                        <div>
+                            <label class="block text-neutral-300 font-semibold mb-2 text-sm">View Mode</label>
+                            <div class="mode-toggle view-mode-toggle" data-mode="priority">
+                                <div class="toggle-slider"></div>
+                                <div id="filter-priority" data-filter="priority" class="toggle-option active" role="button" tabindex="0">Priority</div>
+                                <div id="filter-flat" data-filter="flat" class="toggle-option" role="button" tabindex="0">Unit</div>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <!-- Search & Actions -->
+                    <div class="mt-5 space-y-3">
+                        <div class="relative">
+                            <!-- text-base prevents iOS zoom on focus -->
+                            <input type="text" id="syllabus-search" placeholder="Search chapters..." class="w-full pl-9 p-2.5 rounded-lg bg-neutral-800/60 text-neutral-200 placeholder-neutral-500 focus:ring-1 focus:ring-indigo-500 border border-neutral-700 transition-shadow text-base sm:text-sm" />
+                            <svg class="w-4 h-4 absolute left-3 top-3 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                             <button id="share-progress-main-btn" class="py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-white font-medium rounded-lg transition text-xs flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-1.5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Share
+                            </button>
+                            <button id="reset-data-btn" class="py-2 bg-neutral-800 hover:bg-red-900/30 border border-neutral-700 hover:border-red-900/50 text-red-400 font-medium rounded-lg transition text-xs flex items-center justify-center">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Syllabus Content: Switched to CSS Columns (Masonry) -->
+            <div id="syllabus-container" class="flex-grow w-full columns-1 lg:columns-2 gap-6">
+                <!-- Syllabus Cards Injected Here -->
+            </div>
+        </div>
+        <!-- Zenith Promo Banner -->
+        <div id="zenith-banner" class="hidden mb-10 glassmorphism rounded-xl shadow-lg relative overflow-hidden max-w-4xl mx-auto">
+            <div class="absolute -top-1/2 -left-1/4 w-full h-full bg-gradient-to-r from-indigo-500/30 to-transparent blur-3xl opacity-50 -z-10"></div>
+            <div class="p-5 sm:p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-indigo-500/20 flex items-center justify-center border border-indigo-400/30">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-300">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Try StudyLocus</h3>
+                            <p class="text-sm text-neutral-300 max-w-md">
+                                The ultimate dashboard for student productivity. Manage tasks, visualize progress, and track your mocks in one centralized hub.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 flex items-center gap-3 w-full sm:w-auto">
+                        <a href="https://sval.tech/studylocus/" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto text-center px-4 py-2 text-sm font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg hover:shadow-indigo-500/30">
+                            Launch Dashboard
+                        </a>
+                        <button id="close-banner-btn" class="p-2 text-neutral-500 hover:text-white transition-colors rounded-md" aria-label="Close banner">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-16 mb-8 max-w-3xl mx-auto">
+            <div class="p-6 rounded-xl border border-neutral-800 bg-neutral-900/30">
+                <div class="flex items-center gap-2 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10 10 10 0 0 1-10-10 10 10 0 0 1 10-10z"/></svg>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">How Progress is Calculated</h3>
+                </div>
+                
+                <p class="text-xs text-neutral-400 mb-6 leading-relaxed">
+                    This tracker uses a <strong>Weighted Algorithm</strong> designed for NEET prep. Your total percentage reflects your "Exam Readiness" score, not just a simple count of chapters.
+                </p>
+
+                <div class="mb-8 py-6 px-4 bg-black/20 rounded-lg border border-white/5 flex flex-col items-center justify-center">
+                    <!-- <span class="text-[10px] uppercase tracking-widest text-neutral-500 mb-4 font-bold">The Algorithm</span> -->
+                    
+                    <div class="flex items-center gap-3 sm:gap-4 font-serif text-neutral-300">
+                        <span class="text-lg sm:text-xl italic text-indigo-400">Score %</span>
+                        <span class="text-neutral-600 font-sans">=</span>
+                        <div class="flex flex-col items-center text-xs sm:text-sm">
+                            <span class="border-b border-neutral-600 pb-1.5 px-1 mb-1">Σ ( Chapter Priority × Status Value )</span>
+                            <span class="pt-0.5 text-neutral-500">Total Potential Score</span>
+                        </div>
+                    </div><br>
+
+                    <div class="w-full border-t border-white/5 pt-4 mt-2">
+                        <div class="flex gap-3 items-start">
+                            <svg class="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div>
+                                <p class="text-xs text-neutral-300 font-semibold mb-1">What is Total Potential Score?</p>
+                                <p class="text-[11px] text-neutral-500 leading-relaxed">
+                                    This is the sum of weights for all chapters currently visible. It represents the "Perfect Score" (100%) for your current goal. 
+                                    <!-- <span class="text-neutral-400">If you filter to "Class 12 Only", this number adjusts automatically</span>, so your percentage is always accurate to your specific view. -->
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 text-xs">
+                    <div>
+                        <h4 class="font-semibold text-neutral-300 mb-3 border-b border-neutral-800 pb-2">1. Chapter Priority</h4>
+                        <div class="space-y-2 font-mono">
+                            <div class="flex justify-between items-center">
+                                <span class="text-neutral-500">Priority A (High)</span>
+                                <span class="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded">3.0x</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-neutral-500">Priority Adv</span>
+                                <span class="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded">2.5x</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-neutral-500">Priority B (Med)</span>
+                                <span class="text-neutral-400">2.0x</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-neutral-500">Priority C (Low)</span>
+                                <span class="text-neutral-400">1.5x</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-neutral-500">Priority D</span>
+                                <span class="text-neutral-600">1.0x</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-neutral-300 mb-3 border-b border-neutral-800 pb-2">2. Status Value</h4>
+                        <div class="space-y-2 font-mono">
+                            <div class="flex justify-between items-center">
+                                <span class="text-neutral-500">Pending</span>
+                                <span class="text-neutral-600">0.0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-neutral-500">Theory Done</span>
+                                <span class="text-yellow-500">0.5</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-neutral-500">PYQs Solved</span>
+                                <span class="text-green-500">1.0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-neutral-500">Mastered</span>
+                                <span class="text-indigo-400">1.0</span>
+                            </div>
+                            <p class="text-[10px] text-neutral-600 mt-2 italic">
+                                *Completing PYQs gives full points (1.0). Mastery is a visual distinction only.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-16 border-t border-zinc-800 pt-8 pb-6 text-center">
+            <div class="flex flex-wrap justify-center gap-4 mb-6">
+                <a href="https://www.nta.ac.in/Download/Notice/Notice_20260108180635.pdf" target="_blank" class="px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wide hover:border-indigo-500/50 hover:text-indigo-400 transition-colors">
+                    Official Syllabus PDF
+                </a>
+                <a href="https://discord.gg/mKXPpSY6Dz" target="_blank" class="px-3 py-1.5 rounded-full bg-[#5865F2]/10 border border-[#5865F2]/20 text-[10px] text-[#5865F2] uppercase tracking-wide hover:bg-[#5865F2] hover:text-white transition-all flex items-center gap-2">
+                    <svg class="w-3 h-3 fill-current" viewBox="0 0 127.14 96.36">
+                        <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.11,77.11,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22c1.24-23.28-3.28-47.54-18.9-72.15ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
+                    </svg>
+                    Feedback / Discord
+                </a>
+            </div>
+            <p class="text-zinc-600 text-xs">
+                Built by <a href="https://github.com/svalordev" target="_blank" class="text-zinc-400 hover:text-white transition-colors underline decoration-dotted underline-offset-4">Shaurya Pratap Singh</a> | u/DarthAcademius
+            </p>
+
+        </footer>
+    </div>
+
+    <!-- Floating Action Button Menu (SvalTech Ecosystem) -->
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end group">
+        <!-- Menu Items (Hidden by default) -->
+        <div id="fab-menu" class="flex flex-col items-end gap-3 mb-4 transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none scale-95 origin-bottom-right">
+            
+            <!-- Study Locus -->
+            <a href="https://sval.tech/studylocus/" target="_blank" class="flex items-center gap-3 group/item">
+                <span class="bg-neutral-900/90 text-neutral-300 text-xs font-medium px-3 py-1.5 rounded-lg border border-neutral-800 shadow-xl backdrop-blur-sm group-hover/item:text-white transition">StudyLocus</span>
+                <div class="w-10 h-10 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-indigo-400 shadow-lg group-hover/item:bg-neutral-700 group-hover/item:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+            </a>
+
+            <!-- Syllabus Tracker (Current) -->
+            <a href="https://sval.tech/syllabustracker/" class="flex items-center gap-3 group/item">
+                <span class="bg-neutral-900/90 text-neutral-300 text-xs font-medium px-3 py-1.5 rounded-lg border border-neutral-800 shadow-xl backdrop-blur-sm group-hover/item:text-white transition">Syllabus Tracker</span>
+                <div class="w-10 h-10 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-indigo-400 shadow-lg group-hover/item:bg-neutral-700 group-hover/item:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </div>
+            </a>
+
+            <!-- Zenith -->
+            <a href="https://sval.tech/zenith/" target="_blank" class="flex items-center gap-3 group/item">
+                <span class="bg-neutral-900/90 text-neutral-300 text-xs font-medium px-3 py-1.5 rounded-lg border border-neutral-800 shadow-xl backdrop-blur-sm group-hover/item:text-white transition">Zenith</span>
+                <div class="w-10 h-10 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-indigo-400 shadow-lg group-hover/item:bg-neutral-700 group-hover/item:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- Main Toggle Button -->
+        <button id="fab-toggle" class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-full shadow-2xl shadow-indigo-500/40 flex items-center justify-center text-white border border-white/10 hover:scale-105 active:scale-95 transition-all duration-300 z-50">
+             <svg id="fab-icon-default" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg id="fab-icon-close" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 absolute opacity-0 rotate-90 scale-50 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Confirm Reset Modal -->
+    <div id="reset-modal" class="fixed inset-0 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="glassmorphism p-6 rounded-lg shadow-xl w-80 border border-neutral-700">
+            <h3 class="text-lg font-bold text-white mb-2">Reset Progress?</h3>
+            <p class="text-sm text-neutral-400 mb-6">This will delete all progress, notes, and revision data.</p>
+            <div class="flex justify-end space-x-2">
+                <button id="cancel-reset-btn" class="px-4 py-2 text-sm rounded-lg text-neutral-300 hover:bg-neutral-700 transition">Cancel</button>
+                <button id="confirm-reset-btn" class="px-4 py-2 text-sm rounded-lg text-white bg-red-600 hover:bg-red-700 transition">Reset</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden Canvas for Image Generation -->
+    <canvas id="share-canvas" style="display:none;"></canvas>
+
+    <script>
+        'use strict';
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Caches ---
+            const domCache = {
+                syllabusContainer: document.getElementById('syllabus-container'),
+                overallStatsContainer: document.getElementById('overall-progress-data'),
+                shareCanvas: document.getElementById('share-canvas'),
+                classFilterLabel: document.getElementById('class-filter-label'),
+            };
+
+            // --- Utils: Debounce ---
+            function debounce(func, wait) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            // --- Storage Keys ---
+            const KEYS = {
+                STATUS: 'neet_v1_status',       // Changed from NEET_v3
+                META: 'neet_v1_meta', 
+                TIMESTAMPS: 'neet_v1_time',
+                OPEN_STATES: 'neet_v1_ui_state',
+                VIEW_MODE: 'neet_v1_view_mode',
+                CLASS_FILTER: 'neet_v1_class_filter', 
+                // Removed TARGET_MODE
+            };
+            const BANNER_DISMISSED_KEY = 'studylocusBannerDismissed_v1';
+            
+
+            // --- Syllabus Data (Updated with 'cls' property) ---
+ 
+            const syllabus = [
+                { 
+                    subject: "Physics",
+                    units: [
+                        { unitName: "Mechanics (Class 11)", chapters: [
+                            { id: "PHY_11_01", name: "Units, Dimensions & Errors", priority: 'B', cls: '11' }, // [cite: 72]
+                            { id: "PHY_11_02", name: "Kinematics 1D (Straight Line)", priority: 'B', cls: '11' }, // [cite: 73]
+                            { id: "PHY_11_03", name: "Kinematics 2D (Vector & Projectile)", priority: 'B', cls: '11' }, // [cite: 77]
+                            { id: "PHY_11_04", name: "Laws of Motion (NLM & Friction)", priority: 'A', cls: '11' }, // [cite: 78]
+                            { id: "PHY_11_05", name: "Work, Energy & Power", priority: 'B', cls: '11' }, // [cite: 83]
+                            { id: "PHY_11_06", name: "Rotational Motion (Rigid Body)", priority: 'A', cls: '11' }, // High weightage [cite: 87]
+                            { id: "PHY_11_07", name: "Gravitation", priority: 'B', cls: '11' } // [cite: 96]
+                        ]},
+                        { unitName: "Properties of Matter (Class 11)", chapters: [
+                            { id: "PHY_11_08", name: "Solids (Elasticity)", priority: 'C', cls: '11' }, // [cite: 100]
+                            { id: "PHY_11_09", name: "Fluids (Hydrostatics & Dynamics)", priority: 'B', cls: '11' }, // [cite: 101]
+                            { id: "PHY_11_10", name: "Thermal Properties (Calorimetry)", priority: 'C', cls: '11' } // [cite: 105]
+                        ]},
+                        { unitName: "Heat & Thermodynamics (Class 11)", chapters: [
+                            { id: "PHY_11_11", name: "Thermodynamics", priority: 'A', cls: '11' }, // [cite: 106]
+                            { id: "PHY_11_12", name: "Kinetic Theory of Gases (KTG)", priority: 'B', cls: '11' } // [cite: 110]
+                        ]},
+                        { unitName: "Oscillations & Waves (Class 11)", chapters: [
+                            { id: "PHY_11_13", name: "SHM (Oscillations)", priority: 'B', cls: '11' }, // [cite: 114]
+                            { id: "PHY_11_14", name: "Waves & Sound", priority: 'B', cls: '11' } // [cite: 119]
+                        ]},
+                        { unitName: "Electrodynamics (Class 12)", chapters: [
+                            { id: "PHY_12_01", name: "Electrostatics (Charges & Fields)", priority: 'A', cls: '12' }, // [cite: 121]
+                            { id: "PHY_12_02", name: "Capacitor & Potential", priority: 'A', cls: '12' }, // [cite: 133]
+                            { id: "PHY_12_03", name: "Current Electricity", priority: 'A', cls: '12' }, // Very High Yield [cite: 135]
+                            { id: "PHY_12_04", name: "Moving Charges & Magnetism", priority: 'A', cls: '12' }, // [cite: 141]
+                            { id: "PHY_12_05", name: "Magnetism & Matter", priority: 'C', cls: '12' }, // [cite: 147]
+                            { id: "PHY_12_06", name: "EMI (Induction)", priority: 'B', cls: '12' }, // [cite: 151]
+                            { id: "PHY_12_07", name: "Alternating Current (AC)", priority: 'A', cls: '12' }, // [cite: 153]
+                            { id: "PHY_12_08", name: "EM Waves", priority: 'C', cls: '12' } // [cite: 155]
+                        ]},
+                        { unitName: "Optics (Class 12)", chapters: [
+                            { id: "PHY_12_09", name: "Ray Optics & Optical Instruments", priority: 'A', cls: '12' }, // [cite: 158]
+                            { id: "PHY_12_10", name: "Wave Optics", priority: 'B', cls: '12' } // [cite: 167]
+                        ]},
+                        { unitName: "Modern Physics (Class 12)", chapters: [
+                            { id: "PHY_12_11", name: "Dual Nature of Radiation", priority: 'A', cls: '12' }, // [cite: 170]
+                            { id: "PHY_12_12", name: "Atoms", priority: 'B', cls: '12' }, // [cite: 173]
+                            { id: "PHY_12_13", name: "Nuclei", priority: 'B', cls: '12' }, // [cite: 175]
+                            { id: "PHY_12_14", name: "Semiconductor Electronics", priority: 'A', cls: '12' } // [cite: 177]
+                        ]},
+                        { unitName: "Experimental Physics", chapters: [
+                            { id: "PHY_EXP_01", name: "Vernier, Screw Gauge & Spherometer", priority: 'A', cls: '11' }, // [cite: 182]
+                            { id: "PHY_EXP_02", name: "Practical Skills (Pendulum, Prism, Meter Bridge)", priority: 'B', cls: '12' } // [cite: 184, 192]
+                        ]}
+                    ]
+                },
+                { 
+                    subject: "Chemistry",
+                    units: [
+                        { unitName: "Physical Chemistry (XI)", chapters: [
+                            { id: "CHE_11_01", name: "Mole Concept (Basic Concepts)", priority: 'A', cls: '11' }, // [cite: 215]
+                            { id: "CHE_11_02", name: "Atomic Structure", priority: 'A', cls: '11' }, // [cite: 218]
+                            { id: "CHE_11_03", name: "Thermodynamics", priority: 'A', cls: '11' }, // [cite: 236]
+                            { id: "CHE_11_04", name: "Chemical Equilibrium", priority: 'B', cls: '11' }, // [cite: 253]
+                            { id: "CHE_11_05", name: "Ionic Equilibrium", priority: 'A', cls: '11' }, // [cite: 255]
+                            { id: "CHE_11_06", name: "Redox Reactions", priority: 'C', cls: '11' } // [cite: 257]
+                        ]},
+                        { unitName: "Physical Chemistry (XII)", chapters: [
+                            { id: "CHE_12_01", name: "Solutions", priority: 'A', cls: '12' }, // [cite: 246]
+                            { id: "CHE_12_02", name: "Electrochemistry", priority: 'A', cls: '12' }, // [cite: 257]
+                            { id: "CHE_12_03", name: "Chemical Kinetics", priority: 'A', cls: '12' } // [cite: 262]
+                        ]},
+                        { unitName: "Inorganic Chemistry", chapters: [
+                            { id: "CHE_11_07", name: "Periodic Table", priority: 'B', cls: '11' }, // [cite: 271]
+                            { id: "CHE_11_08", name: "Chemical Bonding", priority: 'A', cls: '11' }, // Highest Weightage [cite: 228]
+                            { id: "CHE_11_09", name: "p-Block (Group 13-14)", priority: 'B', cls: '11' }, // [cite: 275]
+                            { id: "CHE_12_04", name: "p-Block (Group 15-18)", priority: 'B', cls: '12' }, // [cite: 275]
+                            { id: "CHE_12_05", name: "d- and f-Block Elements", priority: 'B', cls: '12' }, // [cite: 278]
+                            { id: "CHE_12_06", name: "Coordination Compounds", priority: 'A', cls: '12' } // [cite: 285]
+                        ]},
+                        { unitName: "Organic Chemistry (XI)", chapters: [
+                            { id: "CHE_11_10", name: "Purification & Analysis (POC)", priority: 'B', cls: '11' }, // [cite: 290]
+                            { id: "CHE_11_11", name: "GOC (General Organic Chemistry)", priority: 'A', cls: '11' }, // Critical Foundation [cite: 299]
+                            { id: "CHE_11_12", name: "Hydrocarbons", priority: 'A', cls: '11' } // [cite: 308]
+                        ]},
+                        { unitName: "Organic Chemistry (XII)", chapters: [
+                            { id: "CHE_12_07", name: "Haloalkanes & Haloarenes", priority: 'B', cls: '12' }, // [cite: 315]
+                            { id: "CHE_12_08", name: "Alcohols, Phenols & Ethers", priority: 'B', cls: '12' }, // [cite: 318]
+                            { id: "CHE_12_09", name: "Aldehydes, Ketones & Carboxylic", priority: 'A', cls: '12' }, // [cite: 327]
+                            { id: "CHE_12_10", name: "Amines", priority: 'B', cls: '12' }, // [cite: 335]
+                            { id: "CHE_12_11", name: "Biomolecules", priority: 'C', cls: '12' } // [cite: 337]
+                        ]},
+                        { unitName: "Practical Chemistry", chapters: [
+                            { id: "CHE_PRAC_01", name: "Salt Analysis (Cations/Anions)", priority: 'A', cls: '12' }, // [cite: 358]
+                            { id: "CHE_PRAC_02", name: "Titration & Chemical Principles", priority: 'B', cls: '12' } // [cite: 357]
+                        ]}
+                    ]
+                },
+                { 
+                    subject: "Botany",
+                    units: [
+                        { unitName: "Diversity & Structure (XI)", chapters: [
+                            { id: "BOT_11_01", name: "The Living World", priority: 'C', cls: '11' }, // [cite: 375]
+                            { id: "BOT_11_02", name: "Biological Classification", priority: 'A', cls: '11' }, // [cite: 376]
+                            { id: "BOT_11_03", name: "Plant Kingdom", priority: 'B', cls: '11' }, // [cite: 377]
+                            { id: "BOT_11_04", name: "Morphology (New Families Included)", priority: 'A', cls: '11' }, // Malvaceae, Cruciferae, etc. 
+                            { id: "BOT_11_05", name: "Anatomy of Flowering Plants", priority: 'B', cls: '11' } // 
+                        ]},
+                        { unitName: "Cell Biology (XI)", chapters: [
+                            { id: "BOT_11_06", name: "Cell: The Unit of Life", priority: 'A', cls: '11' }, // [cite: 383]
+                            { id: "BOT_11_07", name: "Biomolecules", priority: 'A', cls: '11' }, // [cite: 388]
+                            { id: "BOT_11_08", name: "Cell Cycle & Division", priority: 'A', cls: '11' } // [cite: 390]
+                        ]},
+                        { unitName: "Plant Physiology (XI)", chapters: [
+                            { id: "BOT_11_09", name: "Photosynthesis", priority: 'A', cls: '11' }, // [cite: 392]
+                            { id: "BOT_11_10", name: "Respiration in Plants", priority: 'B', cls: '11' }, // [cite: 399]
+                            { id: "BOT_11_11", name: "Plant Growth & Development", priority: 'B', cls: '11' } // [cite: 401]
+                        ]},
+                        { unitName: "Genetics & Reproduction (XII)", chapters: [
+                            { id: "BOT_12_01", name: "Sexual Reproduction in Plants", priority: 'A', cls: '12' }, // [cite: 426]
+                            { id: "BOT_12_02", name: "Principles of Inheritance (Genetics)", priority: 'A', cls: '12' }, // [cite: 435]
+                            { id: "BOT_12_03", name: "Molecular Basis of Inheritance", priority: 'A', cls: '12' } // [cite: 439]
+                        ]},
+                        { unitName: "Ecology (XII)", chapters: [
+                            { id: "BOT_12_04", name: "Organisms & Populations", priority: 'B', cls: '12' }, // [cite: 458]
+                            { id: "BOT_12_05", name: "Ecosystem", priority: 'B', cls: '12' }, // [cite: 459]
+                            { id: "BOT_12_06", name: "Biodiversity & Conservation", priority: 'B', cls: '12' } // [cite: 460]
+                        ]}
+                    ]
+                },
+                { 
+                    subject: "Zoology",
+                    units: [
+                        { unitName: "Structural Org (XI)", chapters: [
+                            { id: "ZOO_11_01", name: "Animal Kingdom", priority: 'A', cls: '11' }, // [cite: 378]
+                            { id: "ZOO_11_02", name: "Structural Org in Animals (Frog)", priority: 'B', cls: '11' } // Frog specified 
+                        ]},
+                        { unitName: "Human Physiology (XI)", chapters: [
+                            { id: "ZOO_11_03", name: "Breathing & Exchange", priority: 'B', cls: '11' }, // [cite: 404]
+                            { id: "ZOO_11_04", name: "Body Fluids & Circulation", priority: 'B', cls: '11' }, // [cite: 407]
+                            { id: "ZOO_11_05", name: "Excretory Products", priority: 'B', cls: '11' }, // [cite: 410]
+                            { id: "ZOO_11_06", name: "Locomotion & Movement", priority: 'B', cls: '11' }, // [cite: 413]
+                            { id: "ZOO_11_07", name: "Neural Control & Coordination", priority: 'A', cls: '11' }, // [cite: 416]
+                            { id: "ZOO_11_08", name: "Chemical Coordination", priority: 'A', cls: '11' } // [cite: 418]
+                        ]},
+                        { unitName: "Reproduction & Evolution (XII)", chapters: [
+                            { id: "ZOO_12_01", name: "Human Reproduction", priority: 'A', cls: '12' }, // [cite: 429]
+                            { id: "ZOO_12_02", name: "Reproductive Health", priority: 'B', cls: '12' }, // [cite: 431]
+                            { id: "ZOO_12_03", name: "Evolution", priority: 'B', cls: '12' } // [cite: 442]
+                        ]},
+                        { unitName: "Biology in Human Welfare (XII)", chapters: [
+                            { id: "ZOO_12_04", name: "Human Health & Disease", priority: 'A', cls: '12' }, // Dengue/Chikungunya included [cite: 446]
+                            { id: "ZOO_12_05", name: "Microbes in Human Welfare", priority: 'C', cls: '12' } // [cite: 452]
+                        ]},
+                        { unitName: "Biotechnology (XII)", chapters: [
+                            { id: "ZOO_12_06", name: "Biotech: Principles & Processes", priority: 'A', cls: '12' }, // [cite: 454]
+                            { id: "ZOO_12_07", name: "Biotech: Applications", priority: 'A', cls: '12' } // [cite: 455]
+                        ]}
+                    ]
+                }
+            ];
+
+            const statusConfig = {
+                'not-started': { 
+                    text: 'Pending', // Was 'To Do'
+                    color: 'text-neutral-500', 
+                    bg: 'bg-neutral-800', 
+                    border: 'border-neutral-700', 
+                    weight: 0, 
+                    dot: 'bg-neutral-500' 
+                },
+                'in-progress': { 
+                    text: 'Theory', // Was 'Syllabus' - much clearer
+                    color: 'text-yellow-500', 
+                    bg: 'bg-yellow-900/20', 
+                    border: 'border-yellow-700/50', 
+                    weight: 0.5, 
+                    dot: 'bg-yellow-500' 
+                },
+                'completed': { 
+                    text: '+ PYQs', 
+                    color: 'text-green-500', 
+                    bg: 'bg-green-900/20', 
+                    border: 'border-green-700/50', 
+                    weight: 1, 
+                    dot: 'bg-green-500' 
+                },
+                'mastered': { 
+                    text: 'Mastered', 
+                    color: 'text-indigo-400', 
+                    bg: 'bg-indigo-900/20', 
+                    border: 'border-indigo-700/50', 
+                    weight: 1, 
+                    dot: 'bg-indigo-400' 
+                }
+            };
+
+            // --- State ---
+            let appData = {
+                status: {},
+                meta: {}, // { id: { rev: 0, pyq: false } }
+                timestamps: {},
+                openStates: {},
+                groupByPriority: false,
+                classFilter: 'both', // '11', '12', 'both',
+                // targetMode: 'main',
+            };
+
+            let searchTerm = '';
+            let activeChapterId = null;
+
+            // --- Initialization with MIGRATION ---
+            function loadData() {
+                // Try load new data
+                const statusV3 = localStorage.getItem(KEYS.STATUS);
+                
+                if (statusV3) {
+                    // Standard load
+                    appData.status = JSON.parse(statusV3);
+                    appData.meta = JSON.parse(localStorage.getItem(KEYS.META) || '{}');
+                    appData.timestamps = JSON.parse(localStorage.getItem(KEYS.TIMESTAMPS) || '{}');
+                    appData.openStates = JSON.parse(localStorage.getItem(KEYS.OPEN_STATES) || '{}');
+                    appData.groupByPriority = localStorage.getItem(KEYS.VIEW_MODE) === 'flat' ? false : true;
+                    appData.classFilter = localStorage.getItem(KEYS.CLASS_FILTER) || 'both';
+                    // appData.targetMode = localStorage.getItem(KEYS.TARGET_MODE) || 'main';
+                }
+            }
+
+            function saveData() {
+                localStorage.setItem(KEYS.STATUS, JSON.stringify(appData.status));
+                localStorage.setItem(KEYS.META, JSON.stringify(appData.meta));
+                localStorage.setItem(KEYS.TIMESTAMPS, JSON.stringify(appData.timestamps));
+                localStorage.setItem(KEYS.OPEN_STATES, JSON.stringify(appData.openStates));
+                localStorage.setItem(KEYS.VIEW_MODE, appData.groupByPriority ? 'priority' : 'flat');
+                localStorage.setItem(KEYS.CLASS_FILTER, appData.classFilter);
+                // localStorage.setItem(KEYS.TARGET_MODE, appData.targetMode);
+            }
+
+            function getMeta(id) {
+                if (!appData.meta[id]) {
+                    appData.meta[id] = { rev: 0, pyq: false };
+                }
+                return appData.meta[id];
+            }
+
+            // --- Lookup Helper ---
+            function getContext(id) {
+                for (let s of syllabus) {
+                    for (let u of s.units) {
+                        const ch = u.chapters.find(c => c.id === id);
+                        if (ch) return { subject: s, unit: u, chapter: ch };
+                    }
+                }
+                return null;
+            }
+
+            function updateSubjectStats(subjName) {
+                const subjData = syllabus.find(s => s.subject === subjName);
+                if (!subjData) return;
+                
+                let allCh = subjData.units.flatMap(u => u.chapters);
+                
+                // --- FIX: Apply ALL filters, not just Class ---
+                
+                // 1. Class Filter
+                if (appData.classFilter !== 'both') {
+                    allCh = allCh.filter(c => c.cls === appData.classFilter);
+                }
+            
+                // 2. Target Filter (Added this)
+                if (appData.targetMode === 'main') {
+                    allCh = allCh.filter(c => !c.isAdv);
+                }
+                
+                const stats = calculateStats(allCh);
+                
+                // 1. Update Percentage
+                const percentEl = document.getElementById(`stat-subj-${subjName}`);
+                if (percentEl) {
+                    percentEl.innerText = `${stats.percent}%`;
+                    percentEl.className = `text-xl font-bold ${stats.percent===100?'text-green-400':'text-indigo-500'} text-glow`;
+                }
+            
+                // 2. Update Progress Bar
+                const barContainer = document.getElementById(`bar-subj-${subjName}`);
+                if (barContainer) {
+                    const total = stats.total || 1; 
+                    barContainer.innerHTML = `
+                        <div class="bg-indigo-500" style="width: ${(stats.mastered/total)*100}%"></div>
+                        <div class="bg-green-500" style="width: ${(stats.completed/total)*100}%"></div>
+                        <div class="bg-yellow-500" style="width: ${(stats.inProgress/total)*100}%"></div>
+                    `;
+                }
+            
+                // 3. Update Text Counts
+                const totalEl = document.getElementById(`txt-subj-${subjName}-total`);
+                const mstEl = document.getElementById(`txt-subj-${subjName}-mst`);
+                const doneEl = document.getElementById(`txt-subj-${subjName}-done`);
+                const wipEl = document.getElementById(`txt-subj-${subjName}-wip`);
+            
+                if (totalEl) totalEl.innerText = `${stats.total} Chapters`;
+                if (mstEl) mstEl.innerText = `${stats.mastered} MST`;
+                if (doneEl) doneEl.innerText = `${stats.completed + stats.mastered} DONE`;
+                if (wipEl) wipEl.innerText = `${stats.inProgress} WIP`;
+            }
+
+            function updateGroupStats(subjName, groupName) {
+                const groupId = `${subjName}-${groupName}`.replace(/\s+/g, '-');
+                const percentEl = document.getElementById(`stat-grp-${groupId}`);
+                if (!percentEl) return;
+            
+                const subjData = syllabus.find(s => s.subject === subjName);
+                let chapters = [];
+                if (appData.groupByPriority) {
+                    const priority = groupName.replace('Priority ', '');
+                    chapters = subjData.units.flatMap(u => u.chapters).filter(c => c.priority === priority);
+                } else {
+                    const unit = subjData.units.find(u => u.unitName === groupName);
+                    if (unit) chapters = unit.chapters;
+                }
+                
+                // --- FIX: Apply Filters ---
+                if (appData.classFilter !== 'both') {
+                    chapters = chapters.filter(c => c.cls === appData.classFilter);
+                }
+                // Added Target Filter
+                if (appData.targetMode === 'main') {
+                    chapters = chapters.filter(c => !c.isAdv);
+                }
+                
+                const stats = calculateStats(chapters);
+                percentEl.innerText = `${stats.percent}%`;
+                percentEl.className = `text-xs font-bold ${stats.percent===100?'text-green-400':'text-neutral-500'}`;
+            }
+
+            function refreshUI(id) {
+                const ctx = getContext(id);
+                if(!ctx) return;
+                
+                // 1. Update Chapter Row Inner HTML
+                const leaf = document.getElementById(`leaf-${id}`);
+                if (leaf) {
+                    const isOpen = activeChapterId === id;
+                    leaf.innerHTML = renderChapterLeafContent(ctx.chapter, isOpen);
+                    if (isOpen) leaf.classList.add('is-open');
+                    else leaf.classList.remove('is-open');
+                }
+
+                // 2. Update Action Panel (if open)
+                if (activeChapterId === id) {
+                    const panel = document.getElementById(`panel-${id}`);
+                    if(panel) panel.innerHTML = renderActionPanel(id);
+                }
+
+                // 3. Update Stats (Targeted)
+                renderOverallStats();
+                updateSubjectStats(ctx.subject.subject);
+                
+                let groupName = appData.groupByPriority ? `Priority ${ctx.chapter.priority}` : ctx.unit.unitName;
+                updateGroupStats(ctx.subject.subject, groupName);
+            }
+
+            // --- Core Logic ---
+            function updateStatus(id, newStatus) {
+                const oldStatus = appData.status[id] || 'not-started';
+                const isDone = s => s === 'completed' || s === 'mastered';
+                
+                if (isDone(newStatus) && !isDone(oldStatus)) {
+                    appData.timestamps[id] = Date.now();
+                } else if (!isDone(newStatus) && isDone(oldStatus)) {
+                    delete appData.timestamps[id];
+                }
+                
+                appData.status[id] = newStatus;
+                saveData();
+                refreshUI(id); 
+            }
+
+            function updateMeta(id, field, value) {
+                const meta = getMeta(id);
+                meta[field] = value;
+                saveData();
+                refreshUI(id);
+            }
+
+            // --- Banner Logic ---
+            function initBanner() {
+                const banner = document.getElementById('zenith-banner'); 
+                const closeBannerBtn = document.getElementById('close-banner-btn');
+                const isDismissed = localStorage.getItem(BANNER_DISMISSED_KEY);
+
+                if (!isDismissed) {
+                    banner.classList.remove('hidden');
+                    setTimeout(() => {
+                        banner.classList.add('show');
+                    }, 50); // Small delay to ensure transition works
+                }
+
+                closeBannerBtn.addEventListener('click', () => {
+                    localStorage.setItem(BANNER_DISMISSED_KEY, 'true');
+                    banner.classList.remove('show');
+                    banner.classList.add('hide');
+                    setTimeout(() => {
+                        banner.classList.add('hidden');
+                    }, 400); // Match transition duration
+                });
+            }
+
+            // Add this configuration near your statusConfig
+            const priorityWeights = {
+                'A': 3.0,   // High Priority (Most valuable)
+                'B': 2.0,   // Medium
+                'C': 1.5,   // Low
+                'D': 1.0,   // Very Low
+                // 'Adv': 2.5  // Advanced topics
+            };
+
+            // Update status weights: PYQs (Completed) is now equal to Mastered
+            // Note: You must update statusConfig weights in your code too!
+            // Recommended: Syllabus=0.5, PYQs=1.0, Mastered=1.0
+
+            function calculateStats(chapters) {
+                let totalScore = 0;       // Current points earned
+                let maxPotentialScore = 0; // Total points possible
+                
+                let mastered = 0, completed = 0, inProgress = 0;
+
+                chapters.forEach(ch => {
+                    const status = appData.status[ch.id] || 'not-started';
+                    
+                    // 1. Get Status Weight
+                    const statusWeight = statusConfig[status].weight;
+
+                    // 2. Get Chapter Weight
+                    const chapterWeight = priorityWeights[ch.priority] || 1;
+
+                    // 3. Calculate Weighted Scores
+                    // Now, if status is 'completed' (PYQs), statusWeight is 1.0
+                    // So (1.0 * 3.0) adds full points to the score, same as 'mastered'
+                    totalScore += (statusWeight * chapterWeight);
+                    maxPotentialScore += (1.0 * chapterWeight); 
+
+                    // Update Counts (Visuals)
+                    if (status === 'mastered') mastered++;
+                    else if (status === 'completed') completed++;
+                    else if (status === 'in-progress') inProgress++;
+                });
+
+                const total = chapters.length;
+                if (total === 0) return { percent: 0, mastered: 0, completed: 0, inProgress: 0, notStarted: 0, total: 0 };
+
+                return {
+                    percent: Math.round((totalScore / maxPotentialScore) * 100),
+                    mastered, 
+                    completed, 
+                    inProgress,
+                    notStarted: total - (mastered + completed + inProgress),
+                    total
+                };
+            }
+
+            // --- Rendering ---
+            function highlight(text) {
+                if (!searchTerm) return text;
+                const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                return text.replace(regex, '<span class="highlight">$1</span>');
+            }
+
+            function renderOverallStats() {
+                let allChapters = syllabus.flatMap(s => s.units.flatMap(u => u.chapters));
+                
+                if (appData.classFilter !== 'both') {
+                    allChapters = allChapters.filter(c => c.cls === appData.classFilter);
+                }
+                if (appData.targetMode === 'main') {
+                    allChapters = allChapters.filter(c => !c.isAdv);
+                }
+
+                const stats = calculateStats(allChapters);
+                const total = stats.total || 1; 
+
+                // FIX: Calculate total 'Done' chapters for display
+                const totalDone = stats.mastered + stats.completed;
+
+                const html = `
+                    <div class="flex items-end justify-between mb-2">
+                        <div>
+                            <span class="text-6xl font-extrabold text-indigo-400 text-glow-strong">${stats.percent}%</span>
+                            <span class="text-sm text-neutral-500 ml-1">Covered</span>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full h-2 rounded-full flex overflow-hidden bg-neutral-800">
+                        <div class="bg-indigo-500" style="width: ${(stats.mastered/total)*100}%"></div>
+                        <div class="bg-green-500" style="width: ${(stats.completed/total)*100}%"></div>
+                        <div class="bg-yellow-500" style="width: ${(stats.inProgress/total)*100}%"></div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-y-1 gap-x-2 text-xs mt-3">
+                        <div class="flex justify-between text-neutral-400"><span>Mastered</span> <span class="text-indigo-400 font-mono">${stats.mastered}</span></div>
+                        <div class="flex justify-between text-neutral-400"><span>Done</span> <span class="text-green-500 font-mono">${totalDone}</span></div>
+                        <div class="flex justify-between text-neutral-400"><span>Doing</span> <span class="text-yellow-500 font-mono">${stats.inProgress}</span></div>
+                        <div class="flex justify-between text-neutral-500"><span>To Do</span> <span class="text-neutral-300 font-mono">${stats.notStarted}</span></div>
+                    </div>
+                `;
+                domCache.overallStatsContainer.innerHTML = html;
+                
+                // ... rest of the function (update Filters UI) ...
+                // (Keep the existing code for filters here)
+                const viewToggle = document.querySelector('.view-mode-toggle');
+                const pBtn = document.getElementById('filter-priority');
+                const fBtn = document.getElementById('filter-flat');
+                viewToggle.dataset.mode = appData.groupByPriority ? 'priority' : 'flat';
+                if(appData.groupByPriority) { pBtn.classList.add('active'); fBtn.classList.remove('active'); }
+                else { pBtn.classList.remove('active'); fBtn.classList.add('active'); }
+
+                const classToggle = document.querySelector('.class-mode-toggle');
+                const c11 = document.getElementById('filter-11');
+                const c12 = document.getElementById('filter-12');
+                const cBoth = document.getElementById('filter-both');
+
+                const targetToggle = document.querySelector('.target-mode-toggle');
+                const tMain = document.getElementById('target-main');
+                const tAdv = document.getElementById('target-adv');
+                const tLabel = document.getElementById('target-filter-label');
+                
+                if(targetToggle) {
+                    targetToggle.dataset.mode = appData.targetMode;
+                    tMain.classList.toggle('active', appData.targetMode === 'main');
+                    tAdv.classList.toggle('active', appData.targetMode === 'adv');
+                    if(tLabel) tLabel.innerText = appData.targetMode === 'main' ? 'Main' : 'Advanced';
+                }
+                
+                classToggle.dataset.mode = appData.classFilter;
+                [c11, c12, cBoth].forEach(b => b.classList.remove('active'));
+                
+                if (appData.classFilter === '11') { c11.classList.add('active'); domCache.classFilterLabel.innerText = "11th Only"; }
+                else if (appData.classFilter === '12') { c12.classList.add('active'); domCache.classFilterLabel.innerText = "12th Only"; }
+                else { cBoth.classList.add('active'); domCache.classFilterLabel.innerText = "All"; }
+            }
+
+            function renderActionPanel(chapterId) {
+                const meta = getMeta(chapterId);
+                const status = appData.status[chapterId] || 'not-started';
+
+                // This automatically generates the new buttons (Syllabus, PYQs, etc.) based on statusConfig
+                const statusBtns = Object.keys(statusConfig).map(key => {
+                    const cfg = statusConfig[key];
+                    const active = status === key;
+                    return `<button data-action="update-status" data-id="${chapterId}" data-status="${key}"
+                        class="flex-1 py-2 text-xs font-medium rounded border ${active ? `${cfg.bg} ${cfg.color} ${cfg.border}` : 'bg-neutral-800 border-neutral-700 text-neutral-500 hover:bg-neutral-700'} transition">
+                        ${cfg.text}
+                    </button>`;
+                }).join('');
+
+                return `
+                    <div class="p-4 space-y-4">
+                        <div>
+                            <label class="text-[10px] uppercase text-neutral-500 font-bold tracking-wider mb-2 block">Status</label>
+                            <div class="grid grid-cols-2 gap-2 sm:flex sm:gap-2">${statusBtns}</div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex-1">
+                                <label class="text-[10px] uppercase text-neutral-500 font-bold tracking-wider mb-2 block">Revisions</label>
+                                <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded p-1.5 justify-center">
+                                    <button data-action="mod-rev" data-id="${chapterId}" data-delta="-1" class="w-6 h-6 flex items-center justify-center bg-neutral-800 hover:bg-neutral-700 rounded text-neutral-400">-</button>
+                                    <span class="font-mono text-white w-4 text-center">${meta.rev}</span>
+                                    <button data-action="mod-rev" data-id="${chapterId}" data-delta="1" class="w-6 h-6 flex items-center justify-center bg-neutral-800 hover:bg-neutral-700 rounded text-indigo-400">+</button>
+                                </div>
+                            </div>
+                            
+                            <div class="flex-1 flex flex-col justify-end gap-2">
+                                </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            
+            function renderChapterLeafContent(ch, isOpen) {
+                const status = appData.status[ch.id] || 'not-started';
+                const meta = getMeta(ch.id);
+                const cfg = statusConfig[status];
+                
+                let badgesHtml = '';
+                // Only show legacy PYQ badge if status is NOT 'completed' (which is now named PYQ)
+                // This prevents "PYQ PYQ" appearing on the screen
+                if (meta.pyq && status !== 'completed') badgesHtml += `<span class="badge badge-pyq mr-1">PYQ</span>`;
+                if (meta.rev > 0) badgesHtml += `<span class="badge badge-rev">R${meta.rev}</span>`;
+
+                return `
+                    <div class="flex-grow pr-2 pointer-events-none">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-sm font-medium ${cfg.color}">${highlight(ch.name)}</span>
+                        </div>
+                        <div class="flex items-center h-4">${badgesHtml}</div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 pointer-events-none">
+                            <span class="text-[10px] text-neutral-600 font-mono">${ch.cls}th</span>
+                            <div class="status-dot ${cfg.dot}"></div>
+                            <svg class="w-4 h-4 text-neutral-600 arrow-icon transform transition-transform ${isOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                `;
+            }
+
+            function renderSyllabus() {
+                domCache.syllabusContainer.innerHTML = '';
+                const searchLower = searchTerm.toLowerCase();
+
+                syllabus.forEach((subject, idx) => {
+                    let groups = [];
+                    let allCh = subject.units.flatMap(u => u.chapters);
+                    
+                    // --- FILTER LOGIC ---
+                    if (appData.classFilter !== 'both') {
+                        allCh = allCh.filter(c => c.cls === appData.classFilter);
+                    }
+                    // 2. Filter by Target (Main vs Adv) - THIS IS NEW
+                    if (appData.targetMode === 'main') {
+                        allCh = allCh.filter(c => !c.isAdv);
+                    }
+
+                    if (allCh.length === 0) return; 
+
+                    if (appData.groupByPriority) {
+                        // Added 'Adv' to the map so these chapters get their own section
+                        const prioMap = { A:[], B:[], C:[], D:[], Adv:[] }; 
+                        
+                        allCh.forEach(c => {
+                            // Safety check if data has a priority not in map
+                            if(prioMap[c.priority]) prioMap[c.priority].push(c);
+                        });
+                        
+                        // Create groups (exclude Adv group if empty)
+                        groups = Object.keys(prioMap)
+                            .filter(p => prioMap[p].length > 0)
+                            .map(p => ({ name: `Priority ${p}`, chapters: prioMap[p] }));
+                    } else {
+                        // For unit view, we iterate original units but filter their chapters
+                        groups = subject.units.map(u => {
+                            let chs = u.chapters;
+                            if (appData.classFilter !== 'both') {
+                                chs = chs.filter(c => c.cls === appData.classFilter);
+                            }
+                            return { name: u.unitName, chapters: chs };
+                        }).filter(g => g.chapters.length > 0); // Remove empty units
+                    }
+
+                    const groupsHtml = groups.map(grp => {
+                        const grpMatch = grp.name.toLowerCase().includes(searchLower);
+                        
+                        const chHtml = grp.chapters.map(ch => {
+                            const nameMatch = ch.name.toLowerCase().includes(searchLower);
+                            if (!grpMatch && !nameMatch && !subject.subject.toLowerCase().includes(searchLower)) return '';
+
+                            const isOpen = activeChapterId === ch.id;
+
+                            return `
+                                <div class="mb-1" id="ch-container-${ch.id}" data-subject="${subject.subject}" data-group="${grp.name}">
+                                    <div data-action="toggle-chapter" data-id="${ch.id}" 
+                                         id="leaf-${ch.id}"
+                                         class="chapter-leaf p-3 flex justify-between items-center ${isOpen ? 'is-open' : ''}">
+                                         ${renderChapterLeafContent(ch, isOpen)}
+                                    </div>
+                                    <div class="action-panel ${isOpen ? 'open' : ''}" id="panel-${ch.id}">
+                                        ${isOpen ? renderActionPanel(ch.id) : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
+                        if (!chHtml) return '';
+
+                        const grpStats = calculateStats(grp.chapters);
+                        const groupId = `${subject.subject}-${grp.name}`.replace(/\s+/g, '-');
+                        const isExpanded = appData.openStates[groupId];
+
+                        return `
+                            <div class="group-branch border border-neutral-800 rounded-lg overflow-hidden mb-3 ${isExpanded ? 'expanded' : 'collapsed'}" data-id="${groupId}">
+                                <div data-action="toggle-group" data-id="${groupId}" class="p-3.5 bg-neutral-800/30 flex justify-between items-center cursor-pointer hover:bg-neutral-800/50 transition-colors">
+                                    <div class="flex items-center gap-3 pointer-events-none">
+                                        <svg class="w-3 h-3 text-neutral-500 arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M19 9l-7 7-7-7"/></svg>
+                                        <span class="text-sm font-semibold text-neutral-300">${grp.name}</span>
+                                    </div>
+                                    <span id="stat-grp-${groupId}" class="text-xs font-bold ${grpStats.percent===100?'text-green-400':'text-neutral-500'} pointer-events-none">${grpStats.percent}%</span>
+                                </div>
+                                <div class="content-container px-2 bg-black/20">
+                                    <div class="py-2">${chHtml}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    if (!groupsHtml) return;
+                    
+                    const subjStats = calculateStats(allCh);
+                    const total = subjStats.total || 1;
+                    const subjId = subject.subject;
+                    const isSubjExpanded = appData.openStates[subjId];
+
+                    const card = document.createElement('div');
+                    card.className = `subject-card rounded-2xl break-inside-avoid mb-6 ${isSubjExpanded ? 'expanded' : 'collapsed'}`;
+                    card.style.animationDelay = `${idx * 100}ms`;
+                    
+                    card.innerHTML = `
+                        <div data-action="toggle-subject" data-id="${subjId}" class="p-5 cursor-pointer">
+                            <div class="flex justify-between items-center mb-3 pointer-events-none">
+                                <h2 class="text-xl font-bold text-neutral-200">${subject.subject}</h2>
+                                <div class="flex items-center gap-3">
+                                    <span id="stat-subj-${subjId}" class="text-xl font-bold ${subjStats.percent===100?'text-green-400':'text-indigo-500'} text-glow">${subjStats.percent}%</span>
+                                    <svg class="w-5 h-5 text-neutral-500 arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </div>
+                            <div id="bar-subj-${subjId}" class="w-full h-1.5 rounded-full flex overflow-hidden bg-neutral-700 pointer-events-none">
+                                <div class="bg-indigo-500" style="width: ${(subjStats.mastered/total)*100}%"></div>
+                                <div class="bg-green-500" style="width: ${(subjStats.completed/total)*100}%"></div>
+                                <div class="bg-yellow-500" style="width: ${(subjStats.inProgress/total)*100}%"></div>
+                            </div>
+                    
+                            <div class="flex justify-between text-[11px] font-semibold text-neutral-500 mt-3 uppercase tracking-wide pointer-events-none">
+                                <span id="txt-subj-${subjId}-total">${subjStats.total} Chapters</span>
+                                <div class="flex gap-3">
+                                    <span id="txt-subj-${subjId}-mst" class="text-indigo-400">${subjStats.mastered} MST</span>
+                                    <span id="txt-subj-${subjId}-done" class="text-green-500">${subjStats.completed} DONE</span>
+                                    <span id="txt-subj-${subjId}-wip" class="text-yellow-500">${subjStats.inProgress} WIP</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content-container px-4 pb-4">
+                            <div class="pt-2 border-t border-neutral-800">${groupsHtml}</div>
+                        </div>
+                    `;
+                    domCache.syllabusContainer.appendChild(card);
+                });
+            }
+
+            function renderAll() {
+                renderOverallStats();
+                renderSyllabus();
+            }
+
+            // --- Centralized Event Listener (Event Delegation) ---
+            document.addEventListener('click', (e) => {
+                const target = e.target.closest('[data-action]');
+                if (!target) return;
+
+                const action = target.dataset.action;
+                const id = target.dataset.id;
+
+                switch(action) {
+                    case 'toggle-subject':
+                        toggleSubject(id, target.closest('.subject-card'));
+                        break;
+                    case 'toggle-group':
+                        toggleGroup(id, target.closest('.group-branch'));
+                        break;
+                    case 'toggle-chapter':
+                        toggleChapter(id);
+                        break;
+                    case 'update-status':
+                        updateStatus(id, target.dataset.status);
+                        break;
+                    case 'mod-rev':
+                        modRev(id, parseInt(target.dataset.delta));
+                        break;
+                    case 'toggle-meta':
+                        toggleMeta(id, target.dataset.key);
+                        break;
+                }
+            });
+
+            // --- Window Exposed Functions (Now Internal) ---
+            function toggleSubject(id, card) {
+                const isOpen = card.classList.contains('expanded');
+                if(isOpen) { card.classList.remove('expanded'); card.classList.add('collapsed'); appData.openStates[id] = false; }
+                else { card.classList.add('expanded'); card.classList.remove('collapsed'); appData.openStates[id] = true; }
+                saveData();
+            }
+
+            function toggleGroup(id, grp) {
+                const isOpen = grp.classList.contains('expanded');
+                if(isOpen) { grp.classList.remove('expanded'); grp.classList.add('collapsed'); appData.openStates[id] = false; }
+                else { grp.classList.add('expanded'); grp.classList.remove('collapsed'); appData.openStates[id] = true; }
+                saveData();
+            }
+
+            // Targeted Toggle Chapter (No re-render)
+            function toggleChapter(id) {
+                const panel = document.getElementById(`panel-${id}`);
+                const leaf = document.getElementById(`leaf-${id}`);
+                const arrow = document.querySelector(`#ch-container-${id} .arrow-icon`);
+
+                // Close previously active if different
+                if (activeChapterId && activeChapterId !== id) {
+                    const oldPanel = document.getElementById(`panel-${activeChapterId}`);
+                    const oldLeaf = document.getElementById(`leaf-${activeChapterId}`);
+                    const oldArrow = document.querySelector(`#ch-container-${activeChapterId} .arrow-icon`);
+                    
+                    if(oldPanel) {
+                        oldPanel.classList.remove('open');
+                    }
+                    if(oldLeaf) oldLeaf.classList.remove('is-open');
+                    if(oldArrow) oldArrow.classList.remove('rotate-180');
+                }
+
+                // Toggle Current
+                if (activeChapterId === id) {
+                    panel.classList.remove('open');
+                    leaf.classList.remove('is-open');
+                    if(arrow) arrow.classList.remove('rotate-180');
+                    activeChapterId = null;
+                } else {
+                    panel.innerHTML = renderActionPanel(id);
+                    panel.classList.add('open');
+                    leaf.classList.add('is-open');
+                    if(arrow) arrow.classList.add('rotate-180');
+                    activeChapterId = id;
+                }
+            }
+
+            function modRev(id, delta) {
+                const meta = getMeta(id);
+                let val = (meta.rev || 0) + delta;
+                if (val < 0) val = 0;
+                updateMeta(id, 'rev', val);
+            }
+
+            function toggleMeta(id, key) {
+                const meta = getMeta(id);
+                updateMeta(id, key, !meta[key]);
+            }
+
+            // --- Event Listeners ---
+            document.querySelector('.view-mode-toggle').addEventListener('click', (e) => {
+                const btn = e.target.closest('.toggle-option');
+                if(btn) {
+                    appData.groupByPriority = (btn.dataset.filter === 'priority');
+                    saveData();
+                    renderAll(); 
+                }
+            });
+
+            document.querySelector('.class-mode-toggle').addEventListener('click', (e) => {
+                const btn = e.target.closest('.toggle-option');
+                if(btn) {
+                    appData.classFilter = btn.dataset.filter;
+                    saveData();
+                    renderAll(); 
+                }
+            });
+
+            document.getElementById('syllabus-search').addEventListener('input', debounce((e) => {
+                searchTerm = e.target.value.trim();
+                renderSyllabus(); 
+            }, 300)); // 300ms Debounce
+
+            const targetToggleBtn = document.querySelector('.target-mode-toggle');
+            if (targetToggleBtn) {
+                targetToggleBtn.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.toggle-option');
+                    if(btn) {
+                        appData.targetMode = btn.dataset.target;
+                        saveData();
+                        renderAll(); 
+                    }
+                });
+            }
+
+            // FAB Logic
+            const fabToggle = document.getElementById('fab-toggle');
+            const fabMenu = document.getElementById('fab-menu');
+            const fabIconDefault = document.getElementById('fab-icon-default');
+            const fabIconClose = document.getElementById('fab-icon-close');
+            let isFabOpen = false;
+
+            if(fabToggle) {
+                fabToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    isFabOpen = !isFabOpen;
+                    if(isFabOpen) {
+                        // Open
+                        fabMenu.classList.remove('opacity-0', 'pointer-events-none', 'scale-95', 'translate-y-4');
+                        fabMenu.classList.add('opacity-100', 'pointer-events-auto', 'scale-100', 'translate-y-0');
+                        
+                        // Icon Animation
+                        fabIconDefault.classList.add('rotate-90', 'opacity-0');
+                        fabIconClose.classList.remove('opacity-0', 'rotate-90', 'scale-50');
+                        fabIconClose.classList.add('rotate-0', 'scale-100');
+                    } else {
+                        // Close
+                        fabMenu.classList.add('opacity-0', 'pointer-events-none', 'scale-95', 'translate-y-4');
+                        fabMenu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100', 'translate-y-0');
+                        
+                        // Icon Animation
+                        fabIconDefault.classList.remove('rotate-90', 'opacity-0');
+                        fabIconClose.classList.add('opacity-0', 'rotate-90', 'scale-50');
+                        fabIconClose.classList.remove('rotate-0', 'scale-100');
+                    }
+                });
+
+                // Close on outside click
+                document.addEventListener('click', (e) => {
+                    if(isFabOpen && !fabToggle.contains(e.target) && !fabMenu.contains(e.target)) {
+                         isFabOpen = false;
+                        fabMenu.classList.add('opacity-0', 'pointer-events-none', 'scale-95', 'translate-y-4');
+                        fabMenu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100', 'translate-y-0');
+                        
+                        fabIconDefault.classList.remove('rotate-90', 'opacity-0');
+                        fabIconClose.classList.add('opacity-0', 'rotate-90', 'scale-50');
+                        fabIconClose.classList.remove('rotate-0', 'scale-100');
+                    }
+                });
+            }
+
+
+            // Reset Logic
+            const resetModal = document.getElementById('reset-modal');
+            document.getElementById('reset-data-btn').addEventListener('click', () => {
+                resetModal.classList.remove('hidden');
+                setTimeout(() => resetModal.classList.remove('opacity-0'), 10);
+            });
+            document.getElementById('cancel-reset-btn').addEventListener('click', () => {
+                resetModal.classList.add('opacity-0');
+                setTimeout(() => resetModal.classList.add('hidden'), 300);
+            });
+            document.getElementById('confirm-reset-btn').addEventListener('click', () => {
+                localStorage.clear();
+                window.location.reload();
+            });
+            
+            // --- Custom Canvas Generation for Sharing ---
+            document.getElementById('share-progress-main-btn').addEventListener('click', () => {
+                const canvas = domCache.shareCanvas;
+                const ctx = canvas.getContext('2d');
+                
+                // Set high resolution dimensions
+                const width = 1200;
+                const height = 630;
+                canvas.width = width;
+                canvas.height = height;
+
+                // --- Background ---
+                // Gradient Background
+                const gradient = ctx.createLinearGradient(0, 0, width, height);
+                gradient.addColorStop(0, '#1a1a1e'); // Dark gray
+                gradient.addColorStop(1, '#0f0f12'); // Darker black
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+
+                // --- Grid Pattern ---
+                ctx.strokeStyle = '#2a2a30';
+                ctx.lineWidth = 1;
+                for(let i=0; i<width; i+=40) {
+                    ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,height); ctx.stroke();
+                }
+                for(let i=0; i<height; i+=40) {
+                    ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(width,i); ctx.stroke();
+                }
+
+                // --- Header ---
+                ctx.font = 'bold 48px Inter, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText('NEET Syllabus Tracker', 60, 100);
+
+                const dateStr = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+                ctx.font = '24px Inter, sans-serif';
+                ctx.fillStyle = '#a3a3a3';
+                ctx.fillText(dateStr, 60, 140);
+
+                // --- Overall Stats (Respects Filter) ---
+                let allCh = syllabus.flatMap(s => s.units.flatMap(u => u.chapters));
+                if (appData.classFilter !== 'both') allCh = allCh.filter(c => c.cls === appData.classFilter);
+                
+                const stats = calculateStats(allCh);
+
+                // Big Percentage
+                ctx.font = 'bold 180px Inter, sans-serif';
+                ctx.fillStyle = '#6366f1'; // Indigo
+                ctx.fillText(`${stats.percent}%`, 60, 350);
+                
+                ctx.font = '30px Inter, sans-serif';
+                ctx.fillStyle = '#a3a3a3';
+                
+                let label = "Total Coverage";
+                if(appData.classFilter === '11') label = "Class 11 Coverage";
+                if(appData.classFilter === '12') label = "Class 12 Coverage";
+                
+                ctx.fillText(label, 65, 390);
+
+                // --- Breakdown ---
+                let yStart = 480;
+                const drawStat = (label, val, color, x) => {
+                    ctx.font = 'bold 48px monospace';
+                    ctx.fillStyle = color;
+                    ctx.fillText(val, x, yStart);
+                    ctx.font = '20px Inter, sans-serif';
+                    ctx.fillStyle = '#737373';
+                    ctx.fillText(label, x, yStart + 30);
+                };
+
+                drawStat('Mastered', stats.mastered, '#818cf8', 60);
+                drawStat('Completed', stats.completed, '#22c55e', 300);
+                drawStat('In Progress', stats.inProgress, '#eab308', 540);
+
+                // --- Subject Bars (Right Side) ---
+                const subX = 800;
+                let subY = 180;
+                
+                syllabus.forEach(s => {
+                    let sCh = s.units.flatMap(u => u.chapters);
+                    if (appData.classFilter !== 'both') sCh = sCh.filter(c => c.cls === appData.classFilter);
+                    
+                    if (sCh.length === 0) return;
+
+                    const sStats = calculateStats(sCh);
+                    
+                    // Label
+                    ctx.font = 'bold 28px Inter, sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(s.subject, subX, subY);
+                    
+                    // Percent
+                    ctx.fillStyle = '#a3a3a3';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(`${sStats.percent}%`, 1140, subY);
+                    ctx.textAlign = 'left';
+
+                    // Bar Track
+                    subY += 20;
+                    ctx.fillStyle = '#2a2a30';
+                    ctx.fillRect(subX, subY, 340, 12);
+
+                    // Bar Fill
+                    const fillW = 340 * (sStats.percent / 100);
+                    // Gradient Fill for bar
+                    const barGrad = ctx.createLinearGradient(subX, 0, subX + fillW, 0);
+                    barGrad.addColorStop(0, '#6366f1');
+                    barGrad.addColorStop(1, '#818cf8');
+                    ctx.fillStyle = barGrad;
+                    ctx.fillRect(subX, subY, fillW, 12);
+                    
+                    subY += 80; // Spacing
+                });
+
+                // --- Branding (UPDATED: Bigger & Better) ---
+                ctx.font = '800 40px Inter, sans-serif'; // Larger, Extra Bold
+                ctx.fillStyle = '#6366f1'; // Primary Brand Color
+                ctx.textAlign = 'right';
+                ctx.fillText('sval.tech', 1140, 580);
+                
+                ctx.font = '500 16px Inter, sans-serif';
+                ctx.fillStyle = '#737373';
+                ctx.fillText('Powered by', 1140, 545);
+                
+                // --- Download ---
+                const link = document.createElement('a');
+                link.download = `NEET-Progress-${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+
+            // Start
+            loadData();
+            initBanner();
+            renderAll();
+        });
+    </script>
+</body>
+</html>
+
+
+
+
